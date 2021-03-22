@@ -1,0 +1,77 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+group 'top.yumesekai'
+version '0.0.2'
+mainClassName = "io.ktor.server.netty.EngineMain"
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+sourceSets {
+    main.kotlin.srcDirs = main.java.srcDirs = ['src']
+    test.kotlin.srcDirs = test.java.srcDirs = ['test']
+    main.resources.srcDirs = ['resources']
+    test.resources.srcDirs = ['testresources']
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+    maven { url 'https://kotlin.bintray.com/ktor' }
+    maven { url 'https://kotlin.bintray.com/kotlin-js-wrappers' }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "io.ktor:ktor-server-netty:$ktor_version"
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+    implementation "io.ktor:ktor-server-core:$ktor_version"
+    implementation "io.ktor:ktor-html-builder:$ktor_version"
+    implementation "org.jetbrains:kotlin-css-jvm:1.0.0-pre.31-kotlin-1.2.41"
+    implementation "io.ktor:ktor-gson:$ktor_version"
+    implementation "io.ktor:ktor-client-core:$ktor_version"
+    implementation "io.ktor:ktor-client-core-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-apache:$ktor_version"
+    testImplementation "io.ktor:ktor-server-tests:$ktor_version"
+
+    // 开发时使用 mirai-core-api，运行时提供 mirai-core
+    api("net.mamoe:mirai-core-api:$miraiVersion")
+    runtimeOnly("net.mamoe:mirai-core:$miraiVersion")
+    //api("net.mamoe", "mirai-core-api", miraiVersion)     // 编译代码使用
+    //runtimeOnly("net.mamoe", "mirai-core", miraiVersion) // 运行时使用
+
+    implementation("com.squareup.okhttp3:okhttp:4.5.0")
+    implementation("com.squareup.okhttp3:mockwebserver:4.5.0")
+    implementation ("com.github.salomonbrys.kotson:kotson:2.5.0")
+}
+
+// 构建可执行 jar 包，运行依赖jar内容会直接打到 jar 里面
+shadowJar {
+    // 生成包的命名规则： baseName-version-classifier.jar
+    manifest {
+        attributes(
+                'Main-Class': 'ApplicattionKt'
+        )
+    }
+
+    // 将 build.gradle 打入到 jar 中, 方便查看依赖包版本
+    from("./"){
+        include 'build.gradle'
+    }
+}

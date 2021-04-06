@@ -22,7 +22,7 @@ import kotlin.collections.ArrayList
 
 class BotManager(){
     companion object {
-        var gson= Gson();
+        var gson= Gson()
         suspend fun init(){
             connect()
             var listener= GlobalEventChannel.subscribeAlways<GroupMessageEvent> { event ->
@@ -34,26 +34,26 @@ class BotManager(){
             var listener2= GlobalEventChannel.subscribeAlways<FriendMessageEvent> { event ->
                 // this: GroupMessageEvent
                 // event: GroupMessageEvent
-                var sd= setSD(this,null,"FriendMessageEvent",null);
-                sendJson(gson.toJson(sd));
+                var sd= setSD(this,null,"FriendMessageEvent",null)
+                sendJson(gson.toJson(sd))
             }
             var listener3=   GlobalEventChannel.subscribeAlways<MemberJoinEvent> { event ->
-                jsonData(event);
+                jsonData(event)
             }
 
             //禁言事件
             var listener4=   GlobalEventChannel.subscribeAlways<MemberMuteEvent> { event ->
-                jsonData(event);
+                jsonData(event)
             }
             //撤回事件
             var listener5=   GlobalEventChannel.subscribeAlways<MessageRecallEvent> { event ->
-                //jsonData(event);
+                //jsonData(event)
             }
             var listener6=   GlobalEventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> { event ->
-                //jsonData(event);
+                //jsonData(event)
             }
 
-           qqLoad();
+           qqLoad()
             //print(accounts.size)
             for (account in accounts) {
                 qqLogin(account.id, Base64.getDecoder().decode(account.password))
@@ -62,22 +62,22 @@ class BotManager(){
         }
 
         private fun jsonData(event: GroupMemberEvent){
-            var bot = event.bot;
-            var member= event.member;
+            var bot = event.bot
+            var member= event.member
             var sd= SendData(bot.id,bot.nick, member.nameCardOrNick,1, event.toString(), member.id, event.toString(), event.group.id, member.permission.toString(), ArrayList())
-            print(event.toString());
-            sendJson(gson.toJson(sd));
+            print(event.toString())
+            sendJson(gson.toJson(sd))
         }
 
 
         private suspend fun setSD(c: MessageEvent, group: Long?, event: String, permission: String?): SendData {
-            var msgs = ArrayList<Msg>();
+            var msgs = ArrayList<Msg>()
             c.message.forEach {
                 if(it is PlainText){
-                    var r1=Regex("\\s*");
-                    if(!r1.matches(it.toString())) msgs.add(Msg("text", it.toString()));
+                    var r1=Regex("\\s*")
+                    if(!r1.matches(it.toString())) msgs.add(Msg("text", it.toString()))
                 } else if(it is Image){
-                    msgs.add(Msg("img", it.queryUrl()));
+                    msgs.add(Msg("img", it.queryUrl()))
                 } else if(it is At){
                     msgs.add(Msg("at", it.target.toString()))
                 } else if(it is Face){
@@ -85,30 +85,30 @@ class BotManager(){
                 }
             }
 
-            return SendData(c.bot.id, c.bot.nick, c.sender.nameCardOrNick,1,c.message.contentToString(),c.sender.id,event,group, permission,msgs);
+            return SendData(c.bot.id, c.bot.nick, c.sender.nameCardOrNick,1,c.message.contentToString(),c.sender.id,event,group, permission,msgs)
         }
 
 
-        var accounts=ArrayList<Account>();
+        var accounts=ArrayList<Account>()
 
         var qqPath="account.txt"
 
         fun qqLoad(): ArrayList<Account> {
-            var qqFile=File(qqPath);
+            var qqFile=File(qqPath)
             if (!qqFile.exists()) {
                 print("no file")
                 return accounts
-            };
-            var json=qqFile.readText();
+            }
+            var json=qqFile.readText()
             print(json)
-            var Type=object : TypeToken<ArrayList<Account>>() {}.type;
-            accounts = gson.fromJson(json, Type);
+            var Type=object : TypeToken<ArrayList<Account>>() {}.type
+            accounts = gson.fromJson(json, Type)
             return accounts
         }
 
         fun qqSave(){
-            var qqFile=File(qqPath);
-            qqFile.writeText(gson.toJson(accounts));
+            var qqFile=File(qqPath)
+            qqFile.writeText(gson.toJson(accounts))
         }
 
 
@@ -116,25 +116,25 @@ class BotManager(){
             var bot = BotFactory.newBot(qq, password) {
                 fileBasedDeviceInfo("device.json") // 使用 device.json 存储设备信息
                 protocol = ANDROID_PAD // 切换协议
-            }.alsoLogin();
-            var passwordMd5=Base64.getEncoder().encodeToString(md5(password));
+            }.alsoLogin()
+            var passwordMd5=Base64.getEncoder().encodeToString(md5(password))
             if(accounts.none { it.id == qq }){
-                accounts.add(Account(qq, passwordMd5));
+                accounts.add(Account(qq, passwordMd5))
             }
 
-            return bot;
+            return bot
         }
 
         suspend fun qqLogin(qq:Long,passwordMd5: ByteArray ): Bot? {
             var bot = BotFactory.newBot(qq, passwordMd5) {
                 fileBasedDeviceInfo("device.json") // 使用 device.json 存储设备信息
                 protocol = ANDROID_PAD // 切换协议
-            }.alsoLogin();
-            return bot;
+            }.alsoLogin()
+            return bot
         }
 
         fun closeBot(botId: Long){
-            Bot.findInstance(botId)?.close();
+            Bot.findInstance(botId)?.close()
         }
     }
 }

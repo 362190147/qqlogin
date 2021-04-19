@@ -41,8 +41,6 @@ fun Application.module(testing: Boolean = false) {
 
     }
 
-
-
     routing {
         static {
             //defaultResource("index.html", "web")
@@ -50,10 +48,10 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/") {
-            //bot?.getFriend(362190147)?.sendMessage("test1");
             var tokenFile=File("token");
+
             var msg= if(tokenFile.exists()){
-                "HELLO WORLD!"
+                "登陆认证"
             }else{
                 "请登陆"
             }
@@ -85,7 +83,7 @@ fun Application.module(testing: Boolean = false) {
             var msg= if(bot != null){
                 "已经登陆了";
             }else{
-                //bot= BotManager.qqLogin(1741546709,"asd8802239");
+                //bot= BotManager.qqLogin(1741546709,"");
                 bot= BotManager.qqLogin(qq,password);
                 BotManager.qqSave();
                 "登陆";
@@ -101,7 +99,7 @@ fun Application.module(testing: Boolean = false) {
                     for(account in BotManager.accounts){
                         div {
                             input( InputType.text, InputFormEncType.applicationXWwwFormUrlEncoded,InputFormMethod.get,"qq"){account.id}
-                            input( InputType.text,InputFormEncType.applicationXWwwFormUrlEncoded,InputFormMethod.get,"password")
+                            input( InputType.password,InputFormEncType.applicationXWwwFormUrlEncoded,InputFormMethod.get,"password")
                             button(name="login"){+"登陆"}
                             script {
                                 +"console.log('test')"

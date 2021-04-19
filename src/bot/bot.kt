@@ -2,8 +2,6 @@ package top.yumesekai.bot
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import io.ktor.html.*
-import kotlinx.coroutines.runBlocking
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.BotFactory
 import net.mamoe.mirai.alsoLogin
@@ -14,7 +12,6 @@ import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.Image.Key.queryUrl
 import net.mamoe.mirai.utils.BotConfiguration.MiraiProtocol.ANDROID_PAD
 import java.io.File
-import java.lang.reflect.Type
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -49,6 +46,7 @@ class BotManager(){
             var listener5=   GlobalEventChannel.subscribeAlways<MessageRecallEvent> { event ->
                 //jsonData(event)
             }
+            //
             var listener6=   GlobalEventChannel.subscribeAlways<BotInvitedJoinGroupRequestEvent> { event ->
                 //jsonData(event)
             }
@@ -73,18 +71,23 @@ class BotManager(){
         private suspend fun setSD(c: MessageEvent, group: Long?, event: String, permission: String?): SendData {
             var msgs = ArrayList<Msg>()
             c.message.forEach {
-                if(it is PlainText){
-                    var r1=Regex("\\s*")
-                    if(!r1.matches(it.toString())) msgs.add(Msg("text", it.toString()))
-                } else if(it is Image){
-                    msgs.add(Msg("img", it.queryUrl()))
-                } else if(it is At){
-                    msgs.add(Msg("at", it.target.toString()))
-                } else if(it is Face){
-                    msgs.add(Msg("face", it.content))
+                when (it){
+                    is PlainText -> {
+                        var r1 = Regex("\\s*")
+                        if (!r1.matches(it.toString())) msgs.add(Msg("text", it.toString()))
+                    }
+                    is Image->{
+                        msgs.add(Msg("img", it.queryUrl()))
+                    }
+                    is At ->{
+                        msgs.add(Msg("at", it.target.toString()))
+                    }
+                    is Face->{
+                        msgs.add(Msg("face", it.content))
+                    }
                 }
-            }
 
+            }
             return SendData(c.bot.id, c.bot.nick, c.sender.nameCardOrNick,1,c.message.contentToString(),c.sender.id,event,group, permission,msgs)
         }
 
@@ -93,6 +96,9 @@ class BotManager(){
 
         var qqPath="account.txt"
 
+        /**
+         * 从文件中读取账号
+         */
         fun qqLoad(): ArrayList<Account> {
             var qqFile=File(qqPath)
             if (!qqFile.exists()) {
@@ -100,37 +106,40 @@ class BotManager(){
                 return accounts
             }
             var json=qqFile.readText()
-            print(json)
-            var Type=object : TypeToken<ArrayList<Account>>() {}.type
-            accounts = gson.fromJson(json, Type)
+            //print(json)
+            accounts = gson.fromJson(json, object : TypeToken<ArrayList<Account>>() {}.type)
             return accounts
         }
 
         fun qqSave(){
-            var qqFile=File(qqPath)
-            qqFile.writeText(gson.toJson(accounts))
+            File(qqPath).writeText(gson.toJson(accounts))
         }
 
 
+        /**
+         * 密码登陆
+         */
         suspend fun qqLogin(qq:Long, password:String): Bot? {
             var bot = BotFactory.newBot(qq, password) {
                 fileBasedDeviceInfo("device.json") // 使用 device.json 存储设备信息
                 protocol = ANDROID_PAD // 切换协议
             }.alsoLogin()
-            var passwordMd5=Base64.getEncoder().encodeToString(md5(password))
+            //登陆成功后添加到列表
+            var passwordMd5= Base64.getEncoder().encodeToString(md5(password))
             if(accounts.none { it.id == qq }){
                 accounts.add(Account(qq, passwordMd5))
             }
-
             return bot
         }
 
+        /**
+         * 密码登陆 MD5 登陆
+         */
         suspend fun qqLogin(qq:Long,passwordMd5: ByteArray ): Bot? {
-            var bot = BotFactory.newBot(qq, passwordMd5) {
+            return BotFactory.newBot(qq, passwordMd5) {
                 fileBasedDeviceInfo("device.json") // 使用 device.json 存储设备信息
                 protocol = ANDROID_PAD // 切换协议
             }.alsoLogin()
-            return bot
         }
 
         fun closeBot(botId: Long){

@@ -1,8 +1,12 @@
 package top.yumesekai.bot
 
+/**
+ *
+ */
 data class Msg(var type: String, var msg: String)
 
 data class Account(var id:Long,var password:String)
+
 data class ReceiveData(
     var bot: Long,
     var cmd: String,

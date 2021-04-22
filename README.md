@@ -1,8 +1,8 @@
+本项目主要功能是登录qq把内容交给后端处理。后端不开源。
+本项目开源主要是因为使用了 https://github.com/mamoe/mirai 按照协议需要开源。
 
-本项目没有
 
 
-本项目使用了 https://github.com/mamoe/mirai
 ## 许可证
 
 

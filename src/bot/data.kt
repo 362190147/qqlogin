@@ -8,6 +8,7 @@ data class Msg(var type: String, var msg: String)
 data class Account(var id:Long,var password:String)
 
 data class ReceiveData(
+    /** 机器人id qq号码*/
     var bot: Long,
     var cmd: String,
     var msg: String,

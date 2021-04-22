@@ -14,9 +14,8 @@ import io.ktor.client.engine.apache.*
 import io.ktor.http.content.*
 import io.ktor.routing.get
 import kotlinx.coroutines.launch
-import kotlinx.html.dom.document
 import net.mamoe.mirai.Bot
-import top.yumesekai.bot.Account
+import top.yumesekai.bot.BotLog
 import top.yumesekai.bot.BotManager
 import java.io.File
 
@@ -29,9 +28,6 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
-    launch {
-        BotManager.init()
-    }
 
     install(ContentNegotiation) {
         gson {}
@@ -39,6 +35,11 @@ fun Application.module(testing: Boolean = false) {
 
     val client = HttpClient(Apache) {
 
+    }
+
+
+    launch {
+        BotManager.init()
     }
 
     routing {
@@ -58,6 +59,7 @@ fun Application.module(testing: Boolean = false) {
 
             call.respondHtml {
                 body {
+                    BotLog.log.forEach { p{ +it } }
                     h1 { +msg }
                     a("/loginUI"){  +"登陆qq"}
                 }
@@ -65,7 +67,7 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/token") {
-            var tokenFile=File("token");
+            var tokenFile=File("config/token");
             tokenFile.writeText("test");
         }
 
@@ -73,20 +75,21 @@ fun Application.module(testing: Boolean = false) {
         get("/qqLogin"){
             var qqString=call.parameters["qq"];
             var password=call.parameters["password"];
-            // 先检测是否已经登陆
+
             if(qqString==null || password==null) {
                 call.respondText("""{"code":0,"msg":“账号和密码都不能为空”}""", ContentType.Application.Json);
                 return@get
             }
             var qq= qqString?.toLong() ?: 0
             var bot: Bot? = Bot.getInstanceOrNull(qq)
+            // 先检测是否已经登陆
             var msg= if(bot != null){
                 "已经登陆了";
             }else{
                 //bot= BotManager.qqLogin(1741546709,"");
                 bot= BotManager.qqLogin(qq,password);
                 BotManager.qqSave();
-                "登陆";
+                "登陆成功";
             }
             call.respondText("""{"code":0,"msg":$msg}""", ContentType.Application.Json);
         }
@@ -97,18 +100,24 @@ fun Application.module(testing: Boolean = false) {
                 body {
                     h1 { +"test" }
                     for(account in BotManager.accounts){
-                        div {
-                            input( InputType.text, InputFormEncType.applicationXWwwFormUrlEncoded,InputFormMethod.get,"qq"){account.id}
-                            input( InputType.password,InputFormEncType.applicationXWwwFormUrlEncoded,InputFormMethod.get,"password")
-                            button(name="login"){+"登陆"}
-                            script {
-                                +"console.log('test')"
-
-                            }
+                        div{
+                            + ("已登录qq" + account.id.toString())
+                            button(name="login"){+"退出"}
                         }
-
                     }
 
+                    div {
+                        p { +"qq号码" }
+                        input( InputType.text, InputFormEncType.applicationXWwwFormUrlEncoded, InputFormMethod.get,"qq" )
+                        br
+                        input( InputType.password,InputFormEncType.applicationXWwwFormUrlEncoded, InputFormMethod.get,"password")
+
+                        button(name="login"){+"登陆"}
+                    }
+
+                    script {
+                        + "console.log('test')"
+                    }
                 }
             }
         }
@@ -136,7 +145,7 @@ fun Application.module(testing: Boolean = false) {
 
             var bot =Bot.findInstance(qqString.toLong());
             msg=if(bot==null){
-                "没有"
+                "没有登录"
             }else{
                 bot?.close();
                 "退出成功"
@@ -172,7 +181,7 @@ fun Application.module(testing: Boolean = false) {
 
 fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
     style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
+        + CSSBuilder().apply(builder).toString()
     }
 }
 
